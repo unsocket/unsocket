@@ -2,8 +2,11 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/unsocket/unsocket"
+	"os"
+	"os/signal"
 )
 
 func main() {
@@ -32,12 +35,28 @@ func main() {
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	err := unsocket.Unsocket(&unsocket.Config{
+	unsock, err := unsocket.NewUnsocket(&unsocket.Config{
 		WebhookURL: args[0],
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to create unsocket: %w", err)
 	}
 
+	// handle interrupt signals
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals, os.Interrupt)
+		<-signals
+		fmt.Println("interrupt received")
+		_ = unsock.Stop()
+	}()
+
+	// run and block
+	err = unsock.RunAndWait()
+	if err != nil {
+		return fmt.Errorf("unsocket failed: %w", err)
+	}
+
+	// signal successful execution
 	return nil
 }
