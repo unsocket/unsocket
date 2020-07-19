@@ -28,7 +28,7 @@ type httpClientInitResponse struct {
 func (c *httpClient) init() (*httpClientInitResponse, error) {
 	type request struct{}
 	var response struct {
-		url string
+		Url string `json:"url"`
 	}
 
 	res, err := c.client.R().
@@ -45,6 +45,6 @@ func (c *httpClient) init() (*httpClientInitResponse, error) {
 	}
 
 	return &httpClientInitResponse{
-		ws: response.url,
+		ws: response.Url,
 	}, nil
 }
