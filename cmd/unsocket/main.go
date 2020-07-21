@@ -3,10 +3,15 @@ package main
 import (
 	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/unsocket/unsocket"
 	"os"
 	"os/signal"
+)
+
+var (
+	verbose = false
 )
 
 func main() {
@@ -24,8 +29,6 @@ func main() {
 		RunE: run,
 	}
 
-	var verbose bool
-
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	err := cmd.Execute()
@@ -35,6 +38,14 @@ func main() {
 }
 
 func run(cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
+
+	log.Infof("running %s", cmd.Name())
+
+	if verbose {
+		log.SetLevel(log.DebugLevel)
+	}
+
 	unsock, err := unsocket.NewUnsocket(&unsocket.Config{
 		WebhookURL: args[0],
 	})
@@ -46,8 +57,8 @@ func run(cmd *cobra.Command, args []string) error {
 	go func() {
 		signals := make(chan os.Signal, 1)
 		signal.Notify(signals, os.Interrupt)
-		<-signals
-		fmt.Println("interrupt received")
+		s := <-signals
+		log.Infof("interrupt %s received", s)
 		_ = unsock.Stop()
 	}()
 

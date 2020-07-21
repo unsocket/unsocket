@@ -3,6 +3,7 @@ package unsocket
 import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/unsocket/unsocket/messages"
 )
 
 type httpClient struct {
@@ -21,19 +22,23 @@ func newHTTPClient(config *httpClientConfig) *httpClient {
 	}
 }
 
-type httpClientInitResponse struct {
-	ws string
+type httpClientResponse struct {
+	messages []*messages.Message
 }
 
-func (c *httpClient) init() (*httpClientInitResponse, error) {
-	type request struct{}
+func (c *httpClient) request(msgs []*messages.Message) (*httpClientResponse, error) {
+	type request struct {
+		Messages []*messages.Message `json:"messages"`
+	}
 	var response struct {
-		Url string `json:"url"`
+		Messages []*messages.Message `json:"messages"`
 	}
 
 	res, err := c.client.R().
 		SetHeader("Content-Type", "application/json").
-		SetBody(&request{}).
+		SetBody(&request{
+			Messages: msgs,
+		}).
 		SetResult(&response).
 		Post(c.url)
 	if err != nil {
@@ -44,7 +49,7 @@ func (c *httpClient) init() (*httpClientInitResponse, error) {
 		return nil, fmt.Errorf("%v", res.String())
 	}
 
-	return &httpClientInitResponse{
-		ws: response.Url,
+	return &httpClientResponse{
+		messages: response.Messages,
 	}, nil
 }
