@@ -17,29 +17,26 @@ However, as it's becoming more and more common to build stateless systems hosted
 +----------------+   |                |   +----------------+
         |            +----------------+           |
         |                    |                    |
-        |           1. READY |                    |
+        |    1. HTTP request |                    |
+        |    connection info |                    |
         | <----------------- |                    |
         |                    |                    |
-        | 2. CONNECT to      | 3. establish web-  |
-        | ws://example       | socket connection  |
+        | 2. HTTP respond    | 3. establish web-  |
+        | with ws://example  | socket connection  |
         | -----------------> | -----------------> |
-        |                    |                    |
-        |        ...         |        ...         |
-        |                    |                    |
-        |    5. pass message |    4. receive web- |
-        |    in HTTP request |    socket message  |
+        ⋮                     ⋮                    ⋮
+        |   5. HTTP request  |    4. receive web- |
+        |   received message |    socket message  |
         | <----------------- | <----------------- |
         |                    |                    |
-        | 7. respond with    | 6. pass reply as   |
-        | reply message      | websocket message  |
+        | 7. HTTP respond    | 6. pass reply as   |
+        | with a reply       | websocket message  |
         | -----------------> | -----------------> |
-        |                    |                    |
-        |        ...         |        ...         |
-        |                    |                    |
+        ⋮                     ⋮                    ⋮
         | 8. POST /message   | 9. pass message as |
         | spontaneously      | websocket message  |
         | -----------------> | -----------------> |
-        |                    |                    |
+        ⋮                     ⋮                    ⋮
 ```
 
 ## Run
