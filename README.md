@@ -1,4 +1,7 @@
-# ⏹ unsocket
+<img align="left" alt="unsocket-logo" width="128" src="https://user-images.githubusercontent.com/198988/88155428-5cfb5000-cc08-11ea-9290-67259425178b.png" />
+
+
+# unsocket
 
 > consume websockets statelessly
 
