@@ -6,7 +6,7 @@
 > consume websockets statelessly
 
 To consume websockets you normally run a stateful app.
-However, as it's becoming more and more common to build stateless systems hosted on AWS Lambda, Vercel or similar environments, consuming webhooks isn't that easy anymore.
+However, as it's becoming more and more common to build stateless systems hosted on AWS Lambda, Vercel or similar environments, consuming websockets isn't that easy anymore.
 `unsocket` is a proxy service that takes care of your stateful websocket connections and talks to your app through stateless HTTP calls.
 
 * `unsocket` takes care of all websocket connection handling (#1, #2, #3)
