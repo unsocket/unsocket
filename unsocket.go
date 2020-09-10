@@ -102,11 +102,15 @@ func (u *Unsocket) RunAndWait() error {
 
 			log.Info("processing websocket message")
 
-			res, _ := u.httpClient.request([]*messages.Message{
+			res, err := u.httpClient.request([]*messages.Message{
 				&messages.NewText(&messages.TextData{
 					Text: string(text),
 				}).Message,
 			})
+			if err != nil {
+				log.Errorf("request failed with %s", err.Error())
+				continue
+			}
 
 			if len(res.messages) > 0 {
 				log.Infof("received %d messages to be processed", len(res.messages))
