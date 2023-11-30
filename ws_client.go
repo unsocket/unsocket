@@ -40,6 +40,7 @@ func newWSClient(config *wsClientConfig) *wsClient {
 }
 
 func (c *wsClient) RunAndWait() error {
+	websocket.DefaultDialer.ReadBufferSize = 102400;
 	conn, _, err := websocket.DefaultDialer.Dial(c.url, nil)
 	if err != nil {
 		return fmt.Errorf("unable to establish websocket connection: %w", err)
