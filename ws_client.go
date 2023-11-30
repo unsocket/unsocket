@@ -3,6 +3,7 @@ package unsocket
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -75,7 +76,9 @@ func (c *wsClient) readPump() {
 	for {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
+			log.Errorf("error reading message: %v", err)
 			close(c.done)
+			return
 		}
 
 		if message != nil {
