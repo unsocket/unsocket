@@ -69,12 +69,13 @@ func (c *wsClient) handlePong(message string) error {
 }
 
 func (c *wsClient) readPump() {
-	// c.conn.SetReadLimit(maxMessageSize)
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(c.handlePong)
 
 	for {
 		_, message, err := c.conn.ReadMessage()
+
+		c.conn.SetReadDeadline(time.Now().Add(pongWait))
+
 		if err != nil {
 			log.Errorf("error reading message: %v", err)
 			close(c.done)
