@@ -102,6 +102,8 @@ func (u *Unsocket) RunAndWait() error {
 
 			log.Info("processing websocket message")
 
+			log.Info(string(text))
+
 			res, err := u.httpClient.request([]*messages.Message{
 				&messages.NewText(&messages.TextData{
 					Text: string(text),
