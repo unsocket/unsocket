@@ -91,6 +91,8 @@ func (u *Unsocket) RunAndWait() error {
 		}
 
 		select {
+		case <-wsClient.error:
+			return errors.New("Websocket client exited with an error")
 		case <-u.done:
 			goto Escape
 		case text := <-wsClient.receive:

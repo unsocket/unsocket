@@ -28,6 +28,8 @@ type wsClient struct {
 	receive chan []byte
 	// done channel acts as shutdown signal
 	done chan struct{}
+	// error channel allows to signal an error from go routines
+	error chan struct{}
 }
 
 type wsClientConfig struct {
@@ -50,6 +52,7 @@ func (c *wsClient) RunAndWait() error {
 
 	// initialize new done channel to act as shutdown signal
 	c.done = make(chan struct{})
+	c.error = make(chan struct{})
 
 	c.send = make(chan []byte)
 	c.receive = make(chan []byte)
@@ -78,6 +81,7 @@ func (c *wsClient) readPump() {
 
 		if err != nil {
 			log.Errorf("error reading message: %v", err)
+			close(c.error)
 			close(c.done)
 			return
 		}
