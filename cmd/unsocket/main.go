@@ -15,6 +15,8 @@ var (
 )
 
 func main() {
+	log.SetFormatter(&log.JSONFormatter{})
+
 	var cmd = &cobra.Command{
 		Use:   "unsocket [webhook]",
 		Short: "unsocket",
