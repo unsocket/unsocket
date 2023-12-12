@@ -3,6 +3,7 @@ package unsocket
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -27,6 +28,8 @@ type wsClient struct {
 	receive chan []byte
 	// done channel acts as shutdown signal
 	done chan struct{}
+	// error channel allows to signal an error from go routines
+	error chan struct{}
 }
 
 type wsClientConfig struct {
@@ -49,6 +52,7 @@ func (c *wsClient) RunAndWait() error {
 
 	// initialize new done channel to act as shutdown signal
 	c.done = make(chan struct{})
+	c.error = make(chan struct{})
 
 	c.send = make(chan []byte)
 	c.receive = make(chan []byte)
@@ -68,14 +72,18 @@ func (c *wsClient) handlePong(message string) error {
 }
 
 func (c *wsClient) readPump() {
-	// c.conn.SetReadLimit(maxMessageSize)
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(c.handlePong)
 
 	for {
 		_, message, err := c.conn.ReadMessage()
+
+		c.conn.SetReadDeadline(time.Now().Add(pongWait))
+
 		if err != nil {
+			log.Errorf("error reading message: %v", err)
+			close(c.error)
 			close(c.done)
+			return
 		}
 
 		if message != nil {
