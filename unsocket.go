@@ -7,6 +7,7 @@ import (
 	"github.com/unsocket/unsocket/messages"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -103,6 +104,7 @@ func (u *Unsocket) RunAndWait() error {
 			}
 
 			log.Info("processing websocket message")
+			time.Sleep(500 * time.Millisecond)
 
 			log.Info(string(text))
 
