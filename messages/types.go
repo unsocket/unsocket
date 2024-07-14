@@ -84,7 +84,7 @@ func NewText(data *TextData) *Text {
 }
 
 func NewExclude(data *ExcludeData) *Exclude {
-	message := Exclude{Message: Message{Type: ConnectType}, ExcludeData: data}
+	message := Exclude{Message: Message{Type: ExcludeType}, ExcludeData: data}
 	message.Message.self = &message
 	return &message
 }
