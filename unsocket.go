@@ -60,8 +60,15 @@ func (u *Unsocket) RunAndWait() error {
 
 	log.Infof("connecting to %s", connect.URL)
 
+	headers := make(map[string][]string)
+
+	for key, value := range connect.Headers {
+		headers[key] = []string{value}
+	}
+
 	wsClient := newWSClient(&wsClientConfig{
 		url: connect.URL,
+		header: headers,
 	})
 
 	err = wsClient.RunAndWait()

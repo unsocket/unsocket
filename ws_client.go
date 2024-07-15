@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"time"
+	"net/http"
 )
 
 const (
@@ -23,6 +24,7 @@ const (
 
 type wsClient struct {
 	url     string
+	header	http.Header
 	conn    *websocket.Conn
 	send    chan []byte
 	receive chan []byte
@@ -34,16 +36,18 @@ type wsClient struct {
 
 type wsClientConfig struct {
 	url string
+	header http.Header
 }
 
 func newWSClient(config *wsClientConfig) *wsClient {
 	return &wsClient{
 		url: config.url,
+		header: config.header,
 	}
 }
 
 func (c *wsClient) RunAndWait() error {
-	conn, _, err := websocket.DefaultDialer.Dial(c.url, nil)
+	conn, _, err := websocket.DefaultDialer.Dial(c.url, c.header)
 	if err != nil {
 		return fmt.Errorf("unable to establish websocket connection: %w", err)
 	}

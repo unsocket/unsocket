@@ -30,6 +30,7 @@ type Ready struct {
 
 type ConnectData struct {
 	URL string `json:"url"`
+	Headers map[string]string `json:"headers"`
 }
 type Connect struct {
 	Message
