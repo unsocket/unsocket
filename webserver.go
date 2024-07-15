@@ -27,7 +27,7 @@ func newWebserver() *webserver {
 }
 
 func (c *webserver) RunAndWait() error {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/message", func(w http.ResponseWriter, r *http.Request) {
 		var bodyBytes []byte
 		var err error
 		if r.Body != nil {
