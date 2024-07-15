@@ -19,6 +19,7 @@ type Unsocket struct {
 
 	// httpClient manages all webhook communication
 	httpClient *httpClient
+	webserver *webserver
 }
 
 func NewUnsocket(config *Config) (*Unsocket, error) {
@@ -26,8 +27,11 @@ func NewUnsocket(config *Config) (*Unsocket, error) {
 		url: config.WebhookURL,
 	})
 
+	webserver := newWebserver()
+
 	return &Unsocket{
 		httpClient: httpClient,
+		webserver: webserver,
 	}, nil
 }
 
@@ -35,9 +39,10 @@ func (u *Unsocket) RunAndWait() error {
 	// initialize new done channel to act as shutdown signal
 	u.done = make(chan struct{})
 
-	log.Info("sending READY to webhook")
+	log.Info("starting up new webserver")
+	u.webserver.RunAndWait()
 
-	// send the ready message to webhook
+	log.Info("sending READY to webhook")
 	res, err := u.httpClient.request([]*messages.Message{
 		&messages.NewReady(&messages.ReadyData{}).Message,
 	})
@@ -100,6 +105,8 @@ func (u *Unsocket) RunAndWait() error {
 		select {
 		case <-wsClient.error:
 			return errors.New("Websocket client exited with an error")
+		case <-u.webserver.error:
+			return errors.New("Webserver exited with an error")
 		case <-u.done:
 			goto Escape
 		case text := <-wsClient.receive:
@@ -111,7 +118,7 @@ func (u *Unsocket) RunAndWait() error {
 
 			log.Info("processing websocket message")
 
-			log.Info(string(text))
+			log.Debug(string(text))
 
 			res, err := u.httpClient.request([]*messages.Message{
 				&messages.NewText(&messages.TextData{
@@ -128,11 +135,17 @@ func (u *Unsocket) RunAndWait() error {
 
 				backlog = append(backlog, res.messages...)
 			}
+		case message := <-u.webserver.receive:
+			log.Info("processing incoming request")
+			m := message.Get().(*messages.Text)
+			log.Debug(m.Text)
+			wsClient.send <- []byte(m.Text)
 		}
 	}
 
 Escape:
 	wsClient.Stop()
+	u.webserver.Stop()
 
 	log.Info("stopped processing")
 
