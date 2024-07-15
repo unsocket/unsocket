@@ -12,6 +12,7 @@ import (
 
 var (
 	verbose = false
+	port = 8080
 )
 
 func main() {
@@ -32,6 +33,7 @@ func main() {
 	}
 
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
+	cmd.PersistentFlags().IntVarP(&port, "port", "p", 8080, "port for the webserver to bind to")
 
 	err := cmd.Execute()
 	if err != nil {
@@ -50,6 +52,7 @@ func run(cmd *cobra.Command, args []string) error {
 
 	unsock, err := unsocket.NewUnsocket(&unsocket.Config{
 		WebhookURL: args[0],
+		WebserverPort: port,
 	})
 	if err != nil {
 		return fmt.Errorf("unable to create unsocket: %w", err)

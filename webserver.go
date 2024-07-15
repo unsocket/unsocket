@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/unsocket/unsocket/messages"
@@ -17,10 +18,14 @@ type webserver struct {
 	receive chan messages.Text
 }
 
-func newWebserver() *webserver {
+type webserverConfig struct {
+	port	int
+}
+
+func newWebserver(config *webserverConfig) *webserver {
 	return &webserver{
 		srv: &http.Server{
-			Addr: ":3009",
+			Addr: fmt.Sprintf(":%v", strconv.Itoa(config.port)),
 		},
 		error: make(chan struct{}),
 	}

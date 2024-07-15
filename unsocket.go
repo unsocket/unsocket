@@ -11,6 +11,7 @@ import (
 
 type Config struct {
 	WebhookURL string
+	WebserverPort int
 }
 
 type Unsocket struct {
@@ -27,7 +28,9 @@ func NewUnsocket(config *Config) (*Unsocket, error) {
 		url: config.WebhookURL,
 	})
 
-	webserver := newWebserver()
+	webserver := newWebserver(&webserverConfig{
+		port: config.WebserverPort,
+	})
 
 	return &Unsocket{
 		httpClient: httpClient,
