@@ -12,6 +12,7 @@ import (
 
 type Config struct {
 	WebhookURL string
+	WebhookSecret string
 }
 
 type Unsocket struct {
@@ -25,6 +26,7 @@ type Unsocket struct {
 func NewUnsocket(config *Config) (*Unsocket, error) {
 	httpClient := newHTTPClient(&httpClientConfig{
 		url: config.WebhookURL,
+		webhookSecret: config.WebhookSecret,
 	})
 
 	return &Unsocket{
