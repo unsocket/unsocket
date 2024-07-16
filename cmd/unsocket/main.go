@@ -12,6 +12,8 @@ import (
 
 var (
 	verbose = false
+	port = 8080
+	webhookSecret = ""
 )
 
 func main() {
@@ -32,6 +34,8 @@ func main() {
 	}
 
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
+	cmd.PersistentFlags().IntVarP(&port, "port", "p", 8080, "port for the webserver to bind to")
+	cmd.PersistentFlags().StringVar(&webhookSecret, "webhook-secret", envOrDefault("WEBHOOK_SECRET", webhookSecret), "webhook client secret")
 
 	err := cmd.Execute()
 	if err != nil {
@@ -50,6 +54,8 @@ func run(cmd *cobra.Command, args []string) error {
 
 	unsock, err := unsocket.NewUnsocket(&unsocket.Config{
 		WebhookURL: args[0],
+		WebhookSecret: webhookSecret,
+		WebserverPort: port,
 	})
 	if err != nil {
 		return fmt.Errorf("unable to create unsocket: %w", err)
@@ -72,4 +78,13 @@ func run(cmd *cobra.Command, args []string) error {
 
 	// signal successful execution
 	return nil
+}
+
+func envOrDefault(key string, def string) string {
+	value := os.Getenv(key)
+	if value == "" {
+
+		return def
+	}
+	return value
 }

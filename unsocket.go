@@ -12,6 +12,8 @@ import (
 
 type Config struct {
 	WebhookURL string
+	WebhookSecret string
+	WebserverPort int
 }
 
 type Unsocket struct {
@@ -20,15 +22,22 @@ type Unsocket struct {
 
 	// httpClient manages all webhook communication
 	httpClient *httpClient
+	webserver *webserver
 }
 
 func NewUnsocket(config *Config) (*Unsocket, error) {
 	httpClient := newHTTPClient(&httpClientConfig{
 		url: config.WebhookURL,
+		webhookSecret: config.WebhookSecret,
+	})
+
+	webserver := newWebserver(&webserverConfig{
+		port: config.WebserverPort,
 	})
 
 	return &Unsocket{
 		httpClient: httpClient,
+		webserver: webserver,
 	}, nil
 }
 
@@ -36,9 +45,10 @@ func (u *Unsocket) RunAndWait() error {
 	// initialize new done channel to act as shutdown signal
 	u.done = make(chan struct{})
 
-	log.Info("sending READY to webhook")
+	log.Info("starting up new webserver")
+	u.webserver.RunAndWait()
 
-	// send the ready message to webhook
+	log.Info("sending READY to webhook")
 	res, err := u.httpClient.request([]*messages.Message{
 		&messages.NewReady(&messages.ReadyData{}).Message,
 	})
@@ -61,8 +71,15 @@ func (u *Unsocket) RunAndWait() error {
 
 	log.Infof("connecting to %s", connect.URL)
 
+	headers := make(map[string][]string)
+
+	for key, value := range connect.Headers {
+		headers[key] = []string{value}
+	}
+
 	wsClient := newWSClient(&wsClientConfig{
 		url: connect.URL,
+		header: headers,
 	})
 
 	err = wsClient.RunAndWait()
@@ -94,6 +111,8 @@ func (u *Unsocket) RunAndWait() error {
 		select {
 		case <-wsClient.error:
 			return errors.New("Websocket client exited with an error")
+		case <-u.webserver.error:
+			return errors.New("Webserver exited with an error")
 		case <-u.done:
 			goto Escape
 		case text := <-wsClient.receive:
@@ -106,7 +125,7 @@ func (u *Unsocket) RunAndWait() error {
 			log.Info("processing websocket message")
 			time.Sleep(500 * time.Millisecond)
 
-			log.Info(string(text))
+			log.Debug(string(text))
 
 			res, err := u.httpClient.request([]*messages.Message{
 				&messages.NewText(&messages.TextData{
@@ -123,11 +142,17 @@ func (u *Unsocket) RunAndWait() error {
 
 				backlog = append(backlog, res.messages...)
 			}
+		case message := <-u.webserver.receive:
+			log.Info("processing incoming request")
+			m := message.Get().(*messages.Text)
+			log.Debug(m.Text)
+			wsClient.send <- []byte(m.Text)
 		}
 	}
 
 Escape:
 	wsClient.Stop()
+	u.webserver.Stop()
 
 	log.Info("stopped processing")
 
