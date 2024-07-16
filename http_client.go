@@ -8,17 +8,20 @@ import (
 
 type httpClient struct {
 	client *resty.Client
-	url    string
+	url    			string
+	webhookSecret	string
 }
 
 type httpClientConfig struct {
-	url string
+	url				string
+	webhookSecret	string
 }
 
 func newHTTPClient(config *httpClientConfig) *httpClient {
 	return &httpClient{
 		client: resty.New(),
 		url:    config.url,
+		webhookSecret: config.webhookSecret,
 	}
 }
 
@@ -34,8 +37,14 @@ func (c *httpClient) request(msgs []*messages.Message) (*httpClientResponse, err
 		Messages []*messages.Message `json:"messages"`
 	}
 
+	headers := map[string]string{ "Content-Type":  "application/json" }
+
+	if len(c.webhookSecret) > 0 {
+		headers["Authorization"] = "Bearer " + c.webhookSecret
+	}
+
 	res, err := c.client.R().
-		SetHeader("Content-Type", "application/json").
+		SetHeaders(headers).
 		SetBody(&request{
 			Messages: msgs,
 		}).

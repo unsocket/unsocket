@@ -11,6 +11,7 @@ import (
 
 type Config struct {
 	WebhookURL string
+	WebhookSecret string
 	WebserverPort int
 }
 
@@ -26,6 +27,7 @@ type Unsocket struct {
 func NewUnsocket(config *Config) (*Unsocket, error) {
 	httpClient := newHTTPClient(&httpClientConfig{
 		url: config.WebhookURL,
+		webhookSecret: config.WebhookSecret,
 	})
 
 	webserver := newWebserver(&webserverConfig{
